@@ -14,7 +14,7 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13", "3.14", "3.14t"]
         # macos-15-large is an intel runner, macos-14 is an arm64 runner
-        platform: [ubuntu-latest, ubuntu-22.04-arm, windows-latest, macos-15-large, macos-14]
+        platform: [ubuntu-latest, ubuntu-22.04-arm, windows-latest, windows-11-arm, macos-15-large, macos-14]
 
     defaults:
       run:
@@ -32,6 +32,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
+  
+      # Windows ARM64 builds fail immediately with the default GCC toolchain, 
+      # so use LLVM Clang to build wheels instead.
+      - name: Configure Clang for Windows ARM64 Builds
+        if: matrix.platform == 'windows-11-arm'
+        shell: pwsh
+        run: |
+          "CC=clang-cl" >> $env:GITHUB_ENV
+          "CXX=clang-cl" >> $env:GITHUB_ENV    
 
       - name: Install numcodecs
         if: ${{ !endsWith(matrix.python-version, 't') }}
